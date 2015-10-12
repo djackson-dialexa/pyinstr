@@ -24,7 +24,14 @@ class InstrumentManager:
         instr = self.open_instrument(identifier)
         return instr.query(query)
 
-insman = InstumentManager()
+    def write_instrument(self, identifier, query):
+        instr = self.open_instrument(identifier)
+        instr.write(query)
+        return "OK"
+
+
+
+insman = InstrumentManager()
 
 class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
@@ -35,16 +42,23 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
         elif command == 'open':
             identifier = line.split(' ')[1]
             self.wfile.write(json.dumps(self.open_instrument(identifier))+'\r\n')
+        elif command == 'write':
+            identifier = line.split(' ')[1]
+            query = ' '.join(line.split(' ')[2:])
+            self.wfile.write(json.dumps(self.write_instrument(identifier))+'\r\n')
         elif command == 'query':
             identifier = line.split(' ')[1]
             query = ' '.join(line.split(' ')[2:])
             self.wfile.write(json.dumps(self.query_instrument(identifier))+'\r\n')
 
     def list_instruments(self):
-        return insman.list_resources()
+        return insman.list_instruments()
 
     def open_instrument(self, identifier):
         return insman.open_instrument(identifier)
+
+    def write_instrument(self, identifier, query):
+        return insman.write_instrument(identifier, query)
 
     def query_instrument(self, identifier, query):
         return insman.query_instrument(identifier, query)
