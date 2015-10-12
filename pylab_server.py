@@ -25,6 +25,10 @@ class InstrumentManager:
         instr = self.open_instrument(identifier)
         return instr.query(query)
 
+    def query_instrument_binary(self, identifier, query):
+        instr = self.open_instrument(identifier)
+        return instr.query_binary_values(query, datatype='B', is_big_endian=True)
+
     def write_instrument(self, identifier, query):
         instr = self.open_instrument(identifier)
         instr.write(query)
@@ -54,7 +58,7 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
         elif command == 'queryb':
             identifier = line.split(' ')[1]
             query = ' '.join(line.split(' ')[2:])
-            self.wfile.write(json.dumps(self.query_instrument(identifier, query))+'\r\n')
+            self.wfile.write(json.dumps(self.query_instrument_binary(identifier, query))+'\r\n')
 
     def list_instruments(self):
         return insman.list_instruments()
@@ -69,7 +73,7 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
         return insman.query_instrument(identifier, query).strip()
 
     def query_instrument_binary(self, identifier, query):
-        return base64.b64encode(insman.query_instrument(identifier, query))
+        return base64.b64encode(insman.query_instrument_binary(identifier, query))
 
 
 if __name__ == '__main__':
