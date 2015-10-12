@@ -3,6 +3,7 @@
 import SocketServer
 import visa
 import json
+import base64
 
 class InstrumentManager:
     def __init__(self):
@@ -30,8 +31,8 @@ class InstrumentManager:
         return "OK"
 
 
-
 insman = InstrumentManager()
+
 
 class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
@@ -50,6 +51,10 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
             identifier = line.split(' ')[1]
             query = ' '.join(line.split(' ')[2:])
             self.wfile.write(json.dumps(self.query_instrument(identifier, query))+'\r\n')
+        elif command == 'queryb':
+            identifier = line.split(' ')[1]
+            query = ' '.join(line.split(' ')[2:])
+            self.wfile.write(json.dumps(self.query_instrument(identifier, query))+'\r\n')
 
     def list_instruments(self):
         return insman.list_instruments()
@@ -61,7 +66,10 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
         return insman.write_instrument(identifier, query)
 
     def query_instrument(self, identifier, query):
-        return insman.query_instrument(identifier, query)
+        return insman.query_instrument(identifier, query).strip()
+
+    def query_instrument_binary(self, identifier, query):
+        return base64.b64encode(insman.query_instrument(identifier, query))
 
 
 if __name__ == '__main__':
