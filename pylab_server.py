@@ -13,3 +13,10 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
     def list_instruments(self):
         rm = visa.ResourceManager()
         return rm.list_resources()
+
+if __name__ == '__main__':
+    HOST, PORT = "localhost", 9090
+
+    server = SocketServer.TCPServer((HOST, PORT), InstrumentRequestHandler)
+
+    server.serve_forever()
