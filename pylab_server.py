@@ -45,11 +45,11 @@ class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
         elif command == 'write':
             identifier = line.split(' ')[1]
             query = ' '.join(line.split(' ')[2:])
-            self.wfile.write(json.dumps(self.write_instrument(identifier))+'\r\n')
+            self.wfile.write(json.dumps(self.write_instrument(identifier, query))+'\r\n')
         elif command == 'query':
             identifier = line.split(' ')[1]
             query = ' '.join(line.split(' ')[2:])
-            self.wfile.write(json.dumps(self.query_instrument(identifier))+'\r\n')
+            self.wfile.write(json.dumps(self.query_instrument(identifier, query))+'\r\n')
 
     def list_instruments(self):
         return insman.list_instruments()
