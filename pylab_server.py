@@ -121,8 +121,8 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                     else:
                         postvars = {}
                     print postvars
-                    if postvars['type'] == 'query':
-                        content = json.dumps({'response': insman.query_instrument(path_elements[0], postvars['query'])})
+                    if postvars['type'][0] == 'query':
+                        content = json.dumps({'response': insman.query_instrument(path_elements[0], postvars['query'][0])})
             else:
                 content = json.dumps({})    
         except Exception, e:
