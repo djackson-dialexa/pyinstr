@@ -6,6 +6,7 @@ import threading
 import visa
 import json
 import base64
+import cgi
 
 class InstrumentManager:
     def __init__(self):
@@ -86,7 +87,6 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
         content_type = 'application/json'
         content = ""
         try:
-            print self.path
             path_elements = [x for x in self.path.split('/') if x]
             if len(path_elements) > 0:
                 if path_elements[0] in insman.list_instruments():
@@ -101,6 +101,36 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             if content:
                 self.wfile.write(content)
+
+    def do_POST(self):
+        response_code = 200
+        content_type = 'application/json'
+        content = ""
+        try:
+            path_elements = [x for x in self.path.split('/') if x]
+            if len(path_elements) > 0:
+                if path_elements[0] in insman.list_instruments():
+                    ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                    if ctype == 'multipart/form-data':
+                        postvars = cgi.parse_multipart(self.rfile, pdict)
+                    elif ctype == 'application/x-www-form-urlencoded':
+                        length = int(self.headers.getheader('content-length'))
+                        postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
+                    else:
+                        postvars = {}
+                    if postvars['type'] == 'query':
+                        content = json.dumps({'response': insman.query_instrument(path_elements[0], postvars['query'])})
+            else:
+                content = json.dumps({})    
+        except Exception, e:
+            response_code = 500
+        finally:
+            self.send_response(response_code)
+            self.send_header("Content-type", content_type)
+            self.end_headers()
+            if content:
+                self.wfile.write(content)
+
 
 if __name__ == '__main__':
     HOST, PORT = "0.0.0.0", 9090
