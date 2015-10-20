@@ -111,6 +111,8 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
             if len(path_elements) > 0:
                 if path_elements[0] in insman.list_instruments():
                     ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
+                    print ctype
+                    print pdict
                     if ctype == 'multipart/form-data':
                         postvars = cgi.parse_multipart(self.rfile, pdict)
                     elif ctype == 'application/x-www-form-urlencoded':
@@ -118,6 +120,7 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                         postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
                     else:
                         postvars = {}
+                    print postvars
                     if postvars['type'] == 'query':
                         content = json.dumps({'response': insman.query_instrument(path_elements[0], postvars['query'])})
             else:
