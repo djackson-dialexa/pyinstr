@@ -89,9 +89,10 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
             print self.path
             path_elements = [x for x in self.path.split('/') if x]
             if len(path_elements) > 0:
-                pass
+                if path_elements[0] in insman.list_instruments():
+                    content = json.dumps({'response': insman.query_instrument(path_elements[0], '*IDN?')})
             else:
-                content = json.dumps(insman.list_instruments())    
+                content = json.dumps({'instruments': insman.list_instruments()})    
         except Exception, e:
             response_code = 500
         finally:
