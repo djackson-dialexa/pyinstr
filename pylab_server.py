@@ -82,11 +82,24 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 class InstrumentRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        print self.rfile.read()
-        self.send_response(200)
-        self.end_header()
-        self.wfile.write("hello\n")
-        return
+        response_code = 200
+        content_type = 'application/json'
+        content = ""
+        try:
+            print self.path
+            path_elements = [x for x in self.path.split('/') if x]
+            if len(path_elements) > 0:
+                pass
+            else:
+                content = json.dumps(insman.list_instruments())    
+        except Exception, e:
+            response_code = 500
+        finally:
+            self.send_response(response_code)
+            self.send_header("Content-type", content_type)
+            self.end_headers()
+            if content:
+                self.wfile.write(content)
 
 if __name__ == '__main__':
     HOST, PORT = "0.0.0.0", 9090
