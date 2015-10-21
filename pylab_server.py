@@ -28,9 +28,20 @@ class InstrumentManager:
         instr = self.open_instrument(identifier)
         return instr.query(query)
 
-    def query_instrument_binary(self, identifier, query):
+    def query_instrument_binary(self, identifier, query, bps=8, signed=True, big_endian=True):
         instr = self.open_instrument(identifier)
-        return instr.query_binary_values(query, datatype='B', is_big_endian=True)
+        typechar = 'b'
+        if bps == 8:
+            if signed:
+                typechar = 'b'
+            else:
+                typechar = 'B'
+        elif bps == 16:
+            if signed:
+                typechar = 'h'
+            else:
+                typechar = 'H'
+        return instr.query_binary_values(query, datatype=typechar, is_big_endian=big_endian)
 
     def write_instrument(self, identifier, query):
         instr = self.open_instrument(identifier)
@@ -82,8 +93,12 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                         postvars = {}
                     if postvars['type'][0] == 'query':
                         if postvars['mode'][0] == 'binary':
+                            bps = int(postvars['bps'][0])
+                            signed = Ture if int(postvars['signed'][0]) == 1 else False
                             data = {'response': insman.query_instrument_binary(path_elements[0],
-                                                                               postvars['query'][0])}
+                                                                               postvars['query'][0],
+                                                                               bps,
+                                                                               signed)}
                             content = json.dumps(data)
                         elif postvars['mode'][0] == 'ascii':
                             content = json.dumps({'response': insman.query_instrument(path_elements[0], 
