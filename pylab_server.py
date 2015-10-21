@@ -95,6 +95,8 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                 content = json.dumps({})    
         except Exception, e:
             response_code = 500
+            content = "%s" % e
+            print e
         finally:
             self.send_response(response_code)
             self.send_header("Content-type", content_type)
