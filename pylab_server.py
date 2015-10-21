@@ -94,7 +94,7 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                     if postvars['type'][0] == 'query':
                         if postvars['mode'][0] == 'binary':
                             bps = int(postvars['bps'][0])
-                            signed = Ture if int(postvars['signed'][0]) == 1 else False
+                            signed = True if int(postvars['signed'][0]) == 1 else False
                             data = {'response': insman.query_instrument_binary(path_elements[0],
                                                                                postvars['query'][0],
                                                                                bps,
