@@ -82,8 +82,8 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                         postvars = {}
                     if postvars['type'][0] == 'query':
                         if postvars['mode'][0] == 'binary':
-                            data = {'response': base64.b64encode(insman.query_instrument_binary(path_elements[0],
-                                                                                                postvars['query'][0]))}
+                            data = {'response': insman.query_instrument_binary(path_elements[0],
+                                                                               postvars['query'][0])}
                             content = json.dumps(data)
                         elif postvars['mode'][0] == 'ascii':
                             content = json.dumps({'response': insman.query_instrument(path_elements[0], 
