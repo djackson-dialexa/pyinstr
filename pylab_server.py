@@ -35,50 +35,12 @@ class InstrumentManager:
     def write_instrument(self, identifier, query):
         instr = self.open_instrument(identifier)
         instr.write(query)
-        return "OK"
 
 
 insman = InstrumentManager()
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-
-#class InstrumentRequestHandler(SocketServer.StreamRequestHandler):
-#    def handle(self):
-#        line = self.rfile.readline().strip()
-#        command = line.split(' ')[0]
-#        if command == 'list':
-#            self.wfile.write(json.dumps(self.list_instruments())+'\r\n')
-#        elif command == 'open':
-#            identifier = line.split(' ')[1]
-#            self.wfile.write(json.dumps(self.open_instrument(identifier))+'\r\n')
-#        elif command == 'write':
-#            identifier = line.split(' ')[1]
-#            query = ' '.join(line.split(' ')[2:])
-#            self.wfile.write(json.dumps(self.write_instrument(identifier, query))+'\r\n')
-#        elif command == 'query':
-#            identifier = line.split(' ')[1]
-#            query = ' '.join(line.split(' ')[2:])
-#            self.wfile.write(json.dumps(self.query_instrument(identifier, query))+'\r\n')
-#        elif command == 'queryb':
-#            identifier = line.split(' ')[1]
-#            query = ' '.join(line.split(' ')[2:])
-#            self.wfile.write(json.dumps(self.query_instrument_binary(identifier, query))+'\r\n')
-#
-#    def list_instruments(self):
-#        return insman.list_instruments()
-#
-#    def open_instrument(self, identifier):
-#        return insman.open_instrument(identifier)
-#
-#    def write_instrument(self, identifier, query):
-#        return insman.write_instrument(identifier, query)
-#
-#    def query_instrument(self, identifier, query):
-#        return insman.query_instrument(identifier, query).strip()
-#
-#    def query_instrument_binary(self, identifier, query):
-#        return base64.b64encode(insman.query_instrument_binary(identifier, query))
 
 
 class InstrumentRequestHandler(BaseHTTPRequestHandler):
@@ -111,8 +73,6 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
             if len(path_elements) > 0:
                 if path_elements[0] in insman.list_instruments():
                     ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
-                    print ctype
-                    print pdict
                     if ctype == 'multipart/form-data':
                         postvars = cgi.parse_multipart(self.rfile, pdict)
                     elif ctype == 'application/x-www-form-urlencoded':
@@ -120,9 +80,17 @@ class InstrumentRequestHandler(BaseHTTPRequestHandler):
                         postvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
                     else:
                         postvars = {}
-                    print postvars
                     if postvars['type'][0] == 'query':
-                        content = json.dumps({'response': insman.query_instrument(path_elements[0], postvars['query'][0])})
+                        if postvars['mode'][0] == 'binary':
+                            data = {'response': base64.b64encode(insman.query_instrument_binary(path_elements[0],
+                                                                                                postvars['query'][0]))}
+                            content = json.dumps(data)
+                        elif postvars['mode'][0] == 'ascii':
+                            content = json.dumps({'response': insman.query_instrument(path_elements[0], 
+                                                                                      postvars['query'][0])})
+                    elif postvars['type'][0] == 'command':
+                        insman.write_instrument(path_elements[0], postvars['query'][0])
+                        content = json.dumps({'response': 'OK'})
             else:
                 content = json.dumps({})    
         except Exception, e:
